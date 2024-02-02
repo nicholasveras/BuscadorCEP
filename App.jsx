@@ -63,7 +63,6 @@ export default function App(){
         </TouchableOpacity>
       </View>
 
-
       {cepUser && 
         <View style={styles.resultado}> 
           <Text style={styles.itemText}>CEP: {cepUser.cep}</Text>
