@@ -1,9 +1,37 @@
-import React, {useState} from "react";
-import {SafeAreaView, Text, TextInput, TouchableOpacity, StyleSheet, View} from "react-native"
+import React, {useState, useRef} from "react";
+import {SafeAreaView, Text, TextInput, TouchableOpacity, StyleSheet, View, Keyboard} from "react-native"
 import api from "./src/services/api";
 
 export default function App(){
   const [cep, setCep] = useState('');
+  const inputRef = useRef(null);
+  const [cepUser, setCepUser] = useState(null);
+
+  async function buscar(){
+    if(cep == '' ){
+      alert('Digite um CEP válido')
+      setCep('');
+      return;
+    }
+
+
+    try{
+      const response = await api.get(`/${cep}/json`);
+      console.log(response.data);
+      setCepUser(response.data);
+
+      Keyboard.dismiss(); // Garante que o teclado será fechado
+    }catch(error){
+      console.log('ERROR: ' + error)
+    }
+    
+  }
+
+  function limpar(){
+    setCep('')
+    inputRef.current.focus();
+  }
+
 
   return(
     <SafeAreaView style={styles.container}>
@@ -15,25 +43,37 @@ export default function App(){
         value={cep}
         onChangeText={(texto) => setCep(texto)}
         keyboardType="numeric"
+        ref={inputRef}
         />
       </View>
 
       <View style={styles.areaBtn}>
-        <TouchableOpacity style={[styles.botao, {backgroundColor: '#1d75cd'}]}>
+        <TouchableOpacity 
+        style={[styles.botao, {backgroundColor: '#1d75cd'}]}
+        onPress={buscar}
+        >
           <Text style={styles.botaoText}>Buscar</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.botao, {backgroundColor: '#cd3e1d'}]}>
+
+        <TouchableOpacity 
+        style={[styles.botao, {backgroundColor: '#cd3e1d'}]}
+        onPress={limpar}
+        >
           <Text style={styles.botaoText}>Limpar</Text>
         </TouchableOpacity>
       </View>
 
-      <View style={styles.resultado}> 
-        <Text style={styles.itemText}>CEP: 37002390</Text>
-        <Text style={styles.itemText}>Logradouro: Rua Estevam Braga Sobrinho</Text>
-        <Text style={styles.itemText}>Bairro: Centro</Text>
-        <Text style={styles.itemText}>Cidade: Varginha</Text>
-        <Text style={styles.itemText}>Estado: Minas Gerais</Text>
-      </View>
+
+      {cepUser && 
+        <View style={styles.resultado}> 
+          <Text style={styles.itemText}>CEP: {cepUser.cep}</Text>
+          <Text style={styles.itemText}>Logradouro: {cepUser.logradouro}</Text>
+          <Text style={styles.itemText}>Bairro: {cepUser.bairro}</Text>
+          <Text style={styles.itemText}>Cidade: {cepUser.localidade}</Text>
+          <Text style={styles.itemText}>Estado: {cepUser.uf}</Text>
+        </View>
+      }
+      
     </SafeAreaView>
   )
 }
